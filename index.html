@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Science Mastery App</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#2563eb"/>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <style>
+    body { font-family: Inter, system-ui, Arial, sans-serif; margin: 20px; background:#f4f6fb; color:#0f172a; }
+    .card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,0.06);max-width:900px;margin:12px auto;}
+    h1{margin:0 0 8px;font-size:20px}
+    label{display:block;margin:8px 0}
+    .question{margin:14px 0;padding:12px;border-radius:8px;background:#fbfdff}
+    .options label{display:block;margin:6px 0;cursor:pointer}
+    #timer{font-weight:700;color:#d63333;margin-top:6px}
+    .controls{display:flex;gap:8px;align-items:center;margin-top:12px}
+    button{background:#2563eb;color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer}
+    button[disabled]{opacity:.5;cursor:not-allowed}
+    .small{font-size:13px;color:#475569}
+    .result{margin-top:12px}
+    .correct{color:green;font-weight:700}
+    .wrong{color:#c92a2a;font-weight:700}
+    .toast{background:#fffbeb;border:1px solid #f59e0b;padding:8px;border-radius:6px;margin-top:8px;color:#92400e}
+    pre {white-space:pre-wrap;word-break:break-word}
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Science Mastery App</h1>
+    <p class="small">You must provide your name and a <strong>Gmail</strong> account (ends with <code>@gmail.com</code>) to start. Each question has a 15-second timer.</p>
+
+    <div id="intro">
+      <label>Name: <input type="text" id="studentName" placeholder="Your name" /></label>
+      <label>Gmail: <input type="email" id="studentEmail" placeholder="you@gmail.com" /></label>
+      <div class="controls">
+        <button id="startBtn">Start Quiz</button>
+        <div id="startStatus" class="small" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div id="quizArea" class="hidden">
+      <div id="quizContainer"></div>
+      <div id="timer" class="small"></div>
+      <div id="toast" class="toast hidden" role="status" aria-live="assertive"></div>
+      <div class="controls">
+        <button id="nextBtn" disabled>Next</button>
+        <div id="progress" class="small" style="margin-left:auto"></div>
+      </div>
+    </div>
+
+    <div id="resultArea" class="hidden">
+      <h2>Results</h2>
+      <div id="resultSummary" class="result"></div>
+    </div>
+  </div>
+
+  <script src="quiz.js"></script>
+
+  <!-- Register Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('✅ Service Worker registered'))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    }
+
+    // Prompt user to install PWA (some browsers support this via beforeinstallprompt)
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      // Optionally show a custom install button or toast
+      console.log('PWA install prompt available');
+    });
+  </script>
+</body>
+</html>
