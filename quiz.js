@@ -1,10 +1,14 @@
-/* quiz.js - Science Mastery App
-   Contains the quiz logic. Drop in the same folder as index.html.
+/* quiz-updated.js - Science Mastery App (features added)
+   - 60-second timer per question
+   - Re-ask unanswered questions after the last one
+   - Progress bar updates for every question
+   - Name and Gmail required
+   - Sends results to provided Google Sheets endpoint
 */
 
 // Configuration
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbyHBf3TgrhGQSLSAmWsZO25MhIkzEXX6BJkWirwuhYdROulGhTeMH-mWEYqRIMR28x7/exec"; // optional
-const timePerQuestion = 15; // seconds
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbyHBf3TgrhGQSLSAmWsZO25MhIkzEXX6BJkWirwuhYdROulGhTeMH-mWEYqRIMR28x7/exec";
+const timePerQuestion = 60; // seconds
 
 /* ---------- QUESTIONS (60 items) ---------- */
 const questions = [
@@ -72,11 +76,14 @@ const questions = [
 
 /* ---------- STATE ---------- */
 let currentIndex = 0;
-let answers = Array(questions.length).fill(null);
+let answers = Array(questions.length).fill(null); // store selected indices (0..3)
 let timer = null;
 let remainingTime = timePerQuestion;
 let studentName = "";
 let studentEmail = "";
+let unansweredQueue = []; // indices of questions unanswered due to timeout
+let passStage = 'initial'; // 'initial' or 'retry'
+let order = [...Array(questions.length).keys()]; // order of indices to ask
 
 /* ---------- UI refs ---------- */
 const introEl = document.getElementById('intro');
@@ -90,6 +97,7 @@ const toast = document.getElementById('toast');
 const progressEl = document.getElementById('progress');
 const resultArea = document.getElementById('resultArea');
 const resultSummary = document.getElementById('resultSummary');
+const progressBar = document.getElementById('progressBar');
 
 /* ---------- Events ---------- */
 startBtn.addEventListener('click', onStart);
@@ -101,14 +109,8 @@ function onStart(){
   const emailInput = document.getElementById('studentEmail').value.trim();
   const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 
-  if(!nameInput){
-    startStatus.textContent = 'Please enter your name.';
-    return;
-  }
-  if(!emailRegex.test(emailInput)){
-    startStatus.textContent = 'Please enter a valid Gmail address (must end with @gmail.com).';
-    return;
-  }
+  if(!nameInput){ startStatus.textContent = 'Please enter your name.'; return; }
+  if(!emailRegex.test(emailInput)){ startStatus.textContent = 'Please enter a valid Gmail address (must end with @gmail.com).'; return; }
 
   studentName = nameInput;
   studentEmail = emailInput;
@@ -117,8 +119,13 @@ function onStart(){
   quizArea.classList.remove('hidden');
   resultArea.classList.add('hidden');
 
+  // reset state
   currentIndex = 0;
   answers = Array(questions.length).fill(null);
+  unansweredQueue = [];
+  passStage = 'initial';
+  order = [...Array(questions.length).keys()];
+
   showQuestion();
 }
 
@@ -126,49 +133,70 @@ function showQuestion(){
   clearToast();
   clearInterval(timer);
 
-  const q = questions[currentIndex];
+  if(currentIndex >= order.length){
+    // finished this pass
+    if(passStage === 'initial' && unansweredQueue.length > 0){
+      // start retry pass
+      passStage = 'retry';
+      order = Array.from(new Set(unansweredQueue));
+      unansweredQueue = [];
+      currentIndex = 0;
+    } else {
+      // completed all
+      finishQuiz();
+      return;
+    }
+  }
+
+  const qIndex = order[currentIndex];
+  const q = questions[qIndex];
+
   quizContainer.innerHTML = '';
   const qWrap = document.createElement('div');
   qWrap.className = 'question';
-  const qHtml = `<p><strong>Q${currentIndex+1}.</strong> ${escapeHtml(q.text)}</p>`;
-  qWrap.innerHTML = qHtml;
+  qWrap.innerHTML = `<p><strong>Q${qIndex+1}.</strong> ${escapeHtml(q.text)}</p>`;
 
   const optsDiv = document.createElement('div');
   optsDiv.className = 'options';
   q.choices.forEach((c, j) => {
-    const id = `q${currentIndex}_opt${j}`;
+    const id = `q${qIndex}_opt${j}`;
     const label = document.createElement('label');
-    label.innerHTML = `<input type="radio" name="q${currentIndex}" value="${j}" id="${id}"> ${escapeHtml(c)}`;
+    label.innerHTML = `<input type="radio" name="q${qIndex}" value="${j}" id="${id}"> ${escapeHtml(c)}`;
     optsDiv.appendChild(label);
   });
   qWrap.appendChild(optsDiv);
   quizContainer.appendChild(qWrap);
 
-  progressEl.textContent = `Question ${currentIndex+1} of ${questions.length}`;
+  // progress text and bar: count answered so far
+  updateProgressUI();
+
+  // Next disabled until selection
   nextBtn.disabled = true;
 
-  const radios = quizContainer.querySelectorAll(`input[name="q${currentIndex}"]`);
+  const radios = quizContainer.querySelectorAll(`input[name="q${qIndex}"]`);
   radios.forEach(r => r.addEventListener('change', () => { nextBtn.disabled = false; }));
 
+  // start timer for this question
   remainingTime = timePerQuestion;
   updateTimerDisplay();
-  timer = setInterval(onTick, 1000);
+  timer = setInterval(() => onTick(qIndex), 1000);
 }
 
-function onTick(){
+function onTick(qIndex){
   remainingTime--;
   updateTimerDisplay();
   if(remainingTime <= 0){
     clearInterval(timer);
-    const sel = document.querySelector(`input[name="q${currentIndex}"]:checked`);
+    const sel = document.querySelector(`input[name="q${qIndex}"]:checked`);
     if(sel){
-      answers[currentIndex] = Number(sel.value);
-      proceedToNext();
+      // user answered exactly as timer expired
+      answers[qIndex] = Number(sel.value);
+      moveNext();
     } else {
-      showToast('Time ran out — you must answer this question. Timer restarted.');
-      remainingTime = timePerQuestion;
-      updateTimerDisplay();
-      timer = setInterval(onTick, 1000);
+      // mark unanswered for retry
+      if(!unansweredQueue.includes(qIndex)) unansweredQueue.push(qIndex);
+      showToast('Time ran out — this question will be re-asked later.');
+      moveNext();
     }
   }
 }
@@ -176,15 +204,23 @@ function onTick(){
 function updateTimerDisplay(){ timerEl.textContent = `Time left: ${remainingTime}s`; }
 
 function onNext(){
-  const sel = document.querySelector(`input[name="q${currentIndex}"]:checked`);
-  if(sel){ answers[currentIndex] = Number(sel.value); } else { showToast('Please select an option before proceeding.'); return; }
-  proceedToNext();
+  const qIndex = order[currentIndex];
+  const sel = document.querySelector(`input[name="q${qIndex}"]:checked`);
+  if(sel){ answers[qIndex] = Number(sel.value); } else { showToast('Please select an option before proceeding.'); return; }
+  moveNext();
 }
 
-function proceedToNext(){
+function moveNext(){
   clearInterval(timer);
   currentIndex++;
-  if(currentIndex < questions.length){ showQuestion(); } else { finishQuiz(); }
+  showQuestion();
+}
+
+function updateProgressUI(){
+  const answeredCount = answers.filter(a => a !== null).length;
+  const pct = Math.round((answeredCount / questions.length) * 100);
+  progressEl.textContent = `${answeredCount} / ${questions.length} answered`;
+  if(progressBar) progressBar.style.width = `${pct}%`;
 }
 
 function finishQuiz(){
@@ -209,15 +245,35 @@ function finishQuiz(){
                 </div>`;
   });
 
-  const outHtml = `<p><strong>${escapeHtml(studentName)}</strong>, you scored <strong>${score}</strong> out of ${questions.length}.</p>` + details;
+  const outHtml = `<p><strong>${escapeHtml(studentName)}</strong>, you scored <strong>${score}</strong> out of ${questions.length} (${Math.round((score/questions.length)*100)}%).</p>` + details;
   resultSummary.innerHTML = outHtml;
   resultArea.classList.remove('hidden');
 
-  try {
-    const payload = { name: studentName, email: studentEmail, score, total: questions.length, answers, timestamp: new Date().toISOString() };
-    fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(()=>{});
-  } catch(e){ }
+  // send to Google Sheets endpoint (best-effort)
+  const payload = {
+    name: studentName,
+    email: studentEmail,
+    score,
+    total: questions.length,
+    percentage: Math.round((score/questions.length)*100),
+    answers,
+    timestamp: new Date().toISOString()
+  };
+
+  // Use no-cors; the endpoint should accept POST JSON
+  fetch(SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(() => { /* ignore network errors */ });
 }
+
+/* helpers */
+function showToast(msg){ toast.textContent = msg; toast.classList.remove('hidden'); setTimeout(()=>{ toast.classList.add('hidden'); }, 3500); }
+function clearToast(){ toast.classList.add('hidden'); toast.textContent = ''; }
+function escapeHtml(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
 
 /* helpers */
 function showToast(msg){ toast.textContent = msg; toast.classList.remove('hidden'); setTimeout(()=>{ toast.classList.add('hidden'); }, 3500); }
