@@ -2,40 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Science Mastery App</title>
+  <title>Science Challenge</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#2563eb"/>
+  <meta name="theme-color" content="#28a745"/>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <style>
-    body { font-family: Inter, system-ui, Arial, sans-serif; margin: 20px; background:#f4f6fb; color:#0f172a; }
+    body { font-family: Inter, system-ui, Arial, sans-serif; margin: 20px; background:#f4f6f2; color:#0f172a; }
     .card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,0.06);max-width:900px;margin:12px auto;}
-    h1{margin:0 0 8px;font-size:24px;text-align:center;color:#2563eb}
+    h1{margin:0 0 8px;font-size:24px;text-align:center;color:#28a745}
     label{display:block;margin:8px 0}
     .question{margin:14px 0;padding:12px;border-radius:8px;background:#fbfdff}
     .options label{display:block;margin:6px 0;cursor:pointer}
     #timer{font-weight:700;color:#d63333;margin-top:6px;text-align:center;font-size:18px;}
     .controls{display:flex;gap:8px;align-items:center;margin-top:12px;justify-content:center}
-    button{background:#2563eb;color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;transition:background 0.3s ease}
-    button:hover{background:#1e4fd0}
+    button{background:#28a745;color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;transition:background 0.3s ease}
+    button:hover{background:#218838}
     button[disabled]{opacity:.5;cursor:not-allowed}
     .small{font-size:13px;color:#475569;text-align:center}
     .result{margin-top:12px;text-align:center}
     .toast{background:#fffbeb;border:1px solid #f59e0b;padding:8px;border-radius:6px;margin-top:8px;color:#92400e;text-align:center}
     .hidden { display: none; }
-    .progress-bar {width:100%;background:#e2e8f0;border-radius:10px;height:10px;margin-top:8px;overflow:hidden}
-    .progress-fill {height:100%;background:#2563eb;width:0%;transition:width 0.3s ease}
+    .progress-bar {width:100%;background:#e2e8e0;border-radius:10px;height:14px;margin-top:8px;overflow:hidden}
+    .progress-fill {height:100%;background:#28a745;width:0%;transition:width 0.3s ease;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+    .modal-backdrop {position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;}
+    .modal {background:#fff;padding:20px;border-radius:8px;max-width:400px;width:90%;box-shadow:0 8px 24px rgba(0,0,0,0.2);}
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Science Mastery App</h1>
+    <h1>Science Challenge</h1>
     <ul class="small" style="text-align:left;max-width:500px;margin:10px auto">
       <li>⏱️ 60-second timer per question</li>
       <li>🔁 Automatically re-asks unanswered questions after the last one</li>
       <li>📊 Progress bar that updates for every question</li>
       <li>📧 Name and Gmail required to start</li>
-      <li>📤 Automatically sends quiz results to your linked Google Sheet</li>
+      <li>📤 Sends results to your Google Sheet at the end</li>
     </ul>
 
     <div id="intro">
@@ -51,7 +53,7 @@
       <div id="quizContainer"></div>
       <div id="timer"></div>
       <div id="toast" class="toast hidden" role="status" aria-live="assertive"></div>
-      <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+      <div class="progress-bar"><div id="progressFill" class="progress-fill">0%</div></div>
       <div class="controls">
         <button id="nextBtn" disabled>Next</button>
       </div>
@@ -61,8 +63,23 @@
     <div id="resultArea" class="hidden">
       <h2>Results</h2>
       <div id="resultSummary" class="result"></div>
-      <div class="controls">
+      <div class="controls" style="flex-direction:column;gap:8px;">
+        <button id="downloadCsvBtn">Download Results (CSV)</button>
         <button id="restartBtn">Restart Quiz</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation modal (hidden, shown before final submission) -->
+  <div id="confirmModal" class="hidden">
+    <div class="modal-backdrop">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <h3 id="modalTitle">Submit quiz?</h3>
+        <p class="small">Are you sure you want to submit your answers? Unanswered questions will be counted as blank and re-asked if any remain.</p>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+          <button id="confirmSubmitBtn">Yes, submit</button>
+          <button id="cancelSubmitBtn">Cancel</button>
+        </div>
       </div>
     </div>
   </div>

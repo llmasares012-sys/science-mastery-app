@@ -1,40 +1,24 @@
-# Science Mastery App (PWA)
+# Science Challenge (PWA)
 
-A Progressive Web App for science quizzes with a 60-second timer, automatic retry for unanswered questions, Gmail login requirement, progress bar, and Google Sheet integration.
+This package contains a Progressive Web App (PWA) named **Science Challenge** ready for GitHub Pages deployment.
 
-## Deployment on GitHub Pages
+## What's included
+- `index.html`
+- `quiz.js` (quiz logic + CSV download)
+- `manifest.json` (PWA manifest)
+- `service-worker.js` (offline caching)
+- `icons/icon-192.png` and `icons/icon-512.png`
+- `README.md` (this file)
 
-1. Upload all files to a new GitHub repository.
-2. Go to **Settings → Pages → Source → `main` branch → `/ (root)`**.
-3. Wait a few minutes for GitHub Pages to build your site.
-4. Your app will be live at: `https://<your-username>.github.io/<repo-name>/`
+## How to deploy (GitHub Pages)
+1. Create a new GitHub repository and upload the contents of this folder.
+2. In the repository, go to **Settings > Pages** and set the source to `main` branch and the root folder `/`.
+3. After a few minutes the site will be available at `https://<username>.github.io/<repo>/`.
 
-## Folder structure
+## Google Sheets integration
+The `SHEET_URL` constant in `quiz.js` is already set to the URL you provided. No further changes are required unless you want to use a different endpoint.
 
-```
-science-mastery-app/
-├── index.html
-├── quiz.js
-├── manifest.json
-├── service-worker.js
-├── README.md
-└── icons/
-    ├── icon-192.png
-    └── icon-512.png
-```
-
-## Google Sheets Integration
-
-1. Create a Google Apps Script linked to a Sheet.
-2. Deploy as a Web App (set **Anyone** can access).
-3. Copy its Web App URL and paste into `SHEET_URL` inside `quiz.js`.
-4. The app sends quiz results automatically via `fetch()`.
-
-## PWA Features
-
-- Works offline after first load.
-- Installable on desktop or mobile.
-- Uses service worker caching for fast performance.
-
----
-© 2025 Science Mastery App by fool.
+## Notes
+- Service worker and manifest require HTTPS (GitHub Pages provides HTTPS automatically).
+- If you add more questions, update the `questions` array in `quiz.js` and ensure the array length matches the intended count.
+- CSV download is available on the results page after finishing the quiz.

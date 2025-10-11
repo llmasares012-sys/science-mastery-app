@@ -1,4 +1,4 @@
-const CACHE_NAME = 'science-mastery-v1';
+const CACHE_NAME = 'science-challenge-v1';
 const FILES_TO_CACHE = ['./','./index.html','./quiz.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png'];
 
 self.addEventListener('install', evt => {
