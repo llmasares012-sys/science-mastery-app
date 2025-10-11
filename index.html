@@ -25,8 +25,9 @@
     .hidden { display: none; }
     .progress-bar {width:100%;background:#e2e8e0;border-radius:10px;height:14px;margin-top:8px;overflow:hidden}
     .progress-fill {height:100%;background:#28a745;width:0%;transition:width 0.3s ease;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
-    .modal-backdrop {position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;}
+    .modal-backdrop {position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;}
     .modal {background:#fff;padding:20px;border-radius:8px;max-width:400px;width:90%;box-shadow:0 8px 24px rgba(0,0,0,0.2);}
+    .modal-backdrop.show {display:flex;}
   </style>
 </head>
 <body>
@@ -71,15 +72,13 @@
   </div>
 
   <!-- Confirmation modal (hidden, shown before final submission) -->
-  <div id="confirmModal" class="hidden">
-    <div class="modal-backdrop">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-        <h3 id="modalTitle">Submit quiz?</h3>
-        <p class="small">Are you sure you want to submit your answers? Unanswered questions will be counted as blank and re-asked if any remain.</p>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-          <button id="confirmSubmitBtn">Yes, submit</button>
-          <button id="cancelSubmitBtn">Cancel</button>
-        </div>
+  <div id="confirmModal" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Submit quiz?</h3>
+      <p class="small">Are you sure you want to submit your answers? Unanswered questions will be counted as blank and re-asked if any remain.</p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+        <button id="confirmSubmitBtn">Yes, submit</button>
+        <button id="cancelSubmitBtn">Cancel</button>
       </div>
     </div>
   </div>
