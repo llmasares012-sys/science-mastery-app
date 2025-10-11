@@ -1,6 +1,6 @@
 {
   "name": "Science Mastery App",
-  "short_name": "SciMastery",
+  "short_name": "ScienceMastery",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f4f6fb",
