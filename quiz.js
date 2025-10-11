@@ -1,3 +1,12 @@
+/* quiz-updated.js - Science Mastery App (features added)
+- 60-second timer per question
+- Re-ask unanswered questions after the last one
+- Progress bar updates for every question
+- Name and Gmail required
+- Sends results to provided Google Sheets endpoint
+*/
+
+// Configuration
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbyHBf3TgrhGQSLSAmWsZO25MhIkzEXX6BJkWirwuhYdROulGhTeMH-mWEYqRIMR28x7/exec";
 const timePerQuestion = 60; // seconds
 
