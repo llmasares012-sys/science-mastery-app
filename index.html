@@ -25,8 +25,6 @@
     .toast{background:#fffbeb;border:1px solid #f59e0b;padding:8px;border-radius:6px;margin-top:8px;color:#92400e}
     pre {white-space:pre-wrap;word-break:break-word}
     .hidden { display: none; }
-    .progress-wrap { display:flex; align-items:center; gap:12px; margin-top:12px }
-    progress { width:100%; height:14px; appearance:none; }
   </style>
 </head>
 <body>
@@ -46,13 +44,12 @@
     <div id="quizArea" class="hidden">
       <div id="quizContainer"></div>
       <div id="timer" class="small"></div>
-      <div id="toast" class="toast hidden" role="status" aria-live="assertive"></div>
-
-      <div class="progress-wrap">
-        <progress id="progressBar" value="0" max="100"></progress>
-        <div id="progressText" class="small">0 / 60 answered</div>
+      <div id="progressBarWrap" class="small" style="margin-top:8px;">
+        <div style="background:#e6eefc;border-radius:8px;height:12px;overflow:hidden">
+          <div id="progressBar" style="height:12px;width:0%;background:#2563eb;transition:width .3s"></div>
+        </div>
       </div>
-
+      <div id="toast" class="toast hidden" role="status" aria-live="assertive"></div>
       <div class="controls">
         <button id="nextBtn" disabled>Next</button>
         <div id="progress" class="small" style="margin-left:auto"></div>
@@ -65,7 +62,7 @@
     </div>
   </div>
 
-  <script src="quiz.js"></script>
+  <script src="quiz-updated.js"></script>
 
   <!-- Register Service Worker -->
   <script>
