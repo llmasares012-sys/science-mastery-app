@@ -30,7 +30,7 @@
 <body>
   <div class="card">
     <h1>Science Mastery App</h1>
-    <p class="small">You must provide your name and a <strong>Gmail</strong> account (ends with <code>@gmail.com</code>) to start. Each question has a 15-second timer.</p>
+    <p class="small">You must provide your name and a <strong>Gmail</strong> account (ends with <code>@gmail.com</code>) to start. Each question has a 60-second timer. Unanswered questions will be re-asked after the last one.</p>
 
     <div id="intro">
       <label>Name: <input type="text" id="studentName" placeholder="Your name" /></label>
@@ -44,6 +44,11 @@
     <div id="quizArea" class="hidden">
       <div id="quizContainer"></div>
       <div id="timer" class="small"></div>
+      <div id="progressBarWrap" class="small" style="margin-top:8px;">
+        <div style="background:#e6eefc;border-radius:8px;height:12px;overflow:hidden">
+          <div id="progressBar" style="height:12px;width:0%;background:#2563eb;transition:width .3s"></div>
+        </div>
+      </div>
       <div id="toast" class="toast hidden" role="status" aria-live="assertive"></div>
       <div class="controls">
         <button id="nextBtn" disabled>Next</button>
@@ -57,7 +62,7 @@
     </div>
   </div>
 
-  <script src="quiz.js"></script>
+  <script src="quiz-updated.js"></script>
 
   <!-- Register Service Worker -->
   <script>
@@ -66,15 +71,6 @@
         .then(() => console.log('✅ Service Worker registered'))
         .catch(err => console.error('Service Worker registration failed:', err));
     }
-
-    // Prompt user to install PWA (some browsers support this via beforeinstallprompt)
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      // Optionally show a custom install button or toast
-      console.log('PWA install prompt available');
-    });
   </script>
 </body>
 </html>
